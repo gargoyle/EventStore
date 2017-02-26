@@ -1,0 +1,28 @@
+{
+    "name": "pmc/eventstore",
+    "description": "Store and Retrieve \"event\" objets as JSON based on an AggregateId.",
+    
+    "authors": [
+        {
+            "name": "Gargoyle",
+            "email": "g@rgoyle.com"
+        }
+    ],
+    "autoload": {
+        "psr-4" : {
+            "Pmc\\EventStore\\" : "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": { 
+            "Pmc\\EventStore\\Tests\\": "tests/" }
+    },
+    "minimum-stability":"dev",
+    "require": {
+        "php": "^7.1",
+        "pmc/eventsourcelib": "dev-master"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^5.7"
+    }
+}

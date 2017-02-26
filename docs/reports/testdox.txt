@@ -1,0 +1,4 @@
+Pmc\EventStore\Tests\Driver\MySQL\Driver
+ [x] Will store event
+ [x] Will fetch events for aggregate
+
