@@ -2,10 +2,13 @@
 
 namespace Pmc\EventStore\Collection;
 
+use Iterator;
+use Pmc\EventStore\StorableEventInterface;
+
 /**
  * @author Gargoyle <g@rgoyle.com>
  */
-class StorableEventList implements \Iterator
+class StorableEventList implements Iterator
 {
     private $eventList;
     private $index;
@@ -16,12 +19,19 @@ class StorableEventList implements \Iterator
         $this->index = 0;
     }
     
-    public function addEvent(\Pmc\EventStore\StorableEventInterface $event)
+    public function addEvents(StorableEventList $events)
+    {
+        foreach ($events as $event) {
+            $this->addEvent($event);
+        }
+    }
+    
+    public function addEvent(StorableEventInterface $event)
     {
         $this->eventList[] = $event;
     }
 
-    public function current(): \Pmc\EventStore\StorableEventInterface
+    public function current(): StorableEventInterface
     {
         return $this->eventList[$this->index];
     }
