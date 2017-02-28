@@ -5,14 +5,12 @@ namespace Pmc\EventStore\Driver\MySQL;
 use mysqli_stmt;
 use Pmc\ {
     EventSourceLib\AggregateId,
-    EventSourceLib\EventClassName,
-    EventStore\Collection\StorableEventList,
+    EventSourceLib\Event\AggregateEvent,
+    EventSourceLib\Event\AggregateEventList,
     EventStore\EventStoreProviderInterface,
     EventStore\Exception\DatabaseCommandFailure,
-    EventStore\Exception\EventHydrationFailed,
-    EventStore\StorableEventInterface
+    ObjectLib\Serializable\ASH
 };
-use ReflectionClass;
 
 /**
  * @author Gargoyle <g@rgoyle.com>
@@ -35,34 +33,14 @@ class Driver implements EventStoreProviderInterface
     {
         $inAggregateId = (string) $aggregateId;
         $stmt = $this->dbConn->prepare("SELECT eventClassName, eventData FROM events WHERE aggregateId = ?");
-        $stmt->bind_param("s",
-                $inAggregateId);
+        $stmt->bind_param("s", $inAggregateId);
         $stmt->execute();
         return $stmt;
     }
 
-    private function hydrateFetchedEvent(EventClassName $eventClassName, array $eventData): StorableEventInterface
+    public function getEventsForAggregate(AggregateId $aggregateId): AggregateEventList
     {
-        if (!class_exists((string)$eventClassName)) {
-            throw new EventHydrationFailed(sprintf(
-                    "Event class %s does not exist!",
-                    (string)$eventClassName));
-        }
-
-        $reflectedEventClass = new ReflectionClass((string)$eventClassName);
-        if (!$reflectedEventClass->implementsInterface(StorableEventInterface::class)) {
-            throw new EventHydrationFailed(sprintf(
-                    "Event class %s does not implement StorableEventInterface!"));
-        }
-
-        $strEventName = (string)$eventClassName;
-        $event = $strEventName::fromArray($eventData);
-        return $event;
-    }
-
-    public function getEventsForAggregate(AggregateId $aggregateId): StorableEventList
-    {
-        $eventList = new StorableEventList();
+        $eventList = new AggregateEventList();
         $stmt = $this->createFetchForAggregateStatement($aggregateId);
 
         $outEventClassName = null;
@@ -70,8 +48,7 @@ class Driver implements EventStoreProviderInterface
         $stmt->bind_result($outEventClassName,
                 $outEventData);
         while ($stmt->fetch()) {
-            $event = $this->hydrateFetchedEvent(new EventClassName($outEventClassName),
-                    $this->decodeEventData($outEventData));
+            $event = ASH::unserialize(['className' => $outEventClassName, 'data' => $outEventData]);
             $eventList->addEvent($event);
         }
 
@@ -107,7 +84,7 @@ class Driver implements EventStoreProviderInterface
         return $stmt;
     }
 
-    public function storeEvent(StorableEventInterface $event): void
+    public function storeEvent(AggregateEvent $event): void
     {
         $inAggregateId = null;
         $inEventId = null;
@@ -123,7 +100,7 @@ class Driver implements EventStoreProviderInterface
         $inAggregateId = (string) $event->aggregateId();
         $inEventId = (string) $event->eventId();
         $inTimestamp = (string) $event->timestamp();
-        $inEventClassName = (string) $event->eventClassName();
+        $inEventClassName = (string) get_class($event);
         $inEventData = $this->encodeEventData($event->toArray());
         if (!$stmt->execute()) {
             throw new DatabaseCommandFailure(sprintf(
@@ -134,7 +111,7 @@ class Driver implements EventStoreProviderInterface
         $stmt->close();
     }
 
-    public function storeEvents(StorableEventList $eventList): void
+    public function storeEvents(AggregateEventList $eventList): void
     {
         $inAggregateId = null;
         $inEventId = null;
@@ -151,7 +128,7 @@ class Driver implements EventStoreProviderInterface
             $inAggregateId = (string) $event->aggregateId();
             $inEventId = (string) $event->eventId();
             $inTimestamp = (string) $event->timestamp();
-            $inEventClassName = (string) $event->eventClassName();
+            $inEventClassName = (string) get_class($event);
             $inEventData = $this->encodeEventData($event->toArray());
             $stmt->execute();
         }

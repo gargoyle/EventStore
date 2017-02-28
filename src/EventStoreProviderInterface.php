@@ -2,10 +2,13 @@
 
 namespace Pmc\EventStore;
 
-use Pmc\ {
-    EventSourceLib\AggregateId,
-    EventStore\Collection\StorableEventList
+use Pmc\EventSourceLib\ {
+    Aggregate\AggregateId,
+    Event\AggregateEvent,
+    Event\AggregateEventList
 };
+
+
 
 /**
  *
@@ -13,8 +16,8 @@ use Pmc\ {
  */
 interface EventStoreProviderInterface
 {
-    public function storeEvents(StorableEventList $eventList): void;
-    public function storeEvent(StorableEventInterface $event): void;
+    public function storeEvents(AggregateEventList $eventList): void;
+    public function storeEvent(AggregateEvent $event): void;
     
-    public function getEventsForAggregate(AggregateId $aggregateId): StorableEventList;
+    public function getEventsForAggregate(AggregateId $aggregateId): AggregateEventList;
 }
