@@ -4,7 +4,7 @@ namespace Pmc\EventStore\Driver\MySQL;
 
 use mysqli_stmt;
 use Pmc\ {
-    EventSourceLib\AggregateId,
+    EventSourceLib\Aggregate\AggregateId,
     EventSourceLib\Event\AggregateEvent,
     EventSourceLib\Event\AggregateEventList,
     EventStore\EventStoreProviderInterface,
@@ -48,7 +48,7 @@ class Driver implements EventStoreProviderInterface
         $stmt->bind_result($outEventClassName,
                 $outEventData);
         while ($stmt->fetch()) {
-            $event = ASH::unserialize(['className' => $outEventClassName, 'data' => $outEventData]);
+            $event = ASH::unserialize(['className' => $outEventClassName, 'data' => $this->decodeEventData($outEventData)]);
             $eventList->addEvent($event);
         }
 

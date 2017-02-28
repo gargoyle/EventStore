@@ -2,12 +2,16 @@
 
 namespace Pmc\EventStore\Tests\Driver\MySQL;
 
+use mysqli;
 use PHPUnit\Framework\TestCase;
-use Pmc\{
-    EventSourceLib\AggregateId,
+use Pmc\ {
+    EventSourceLib\Aggregate\AggregateId,
     EventStore\Driver\MySQL\Driver,
     EventStore\Tests\TestEvent
 };
+
+
+
 
 /**
  * @author Paul Court <emails@paulcourt.co.uk>
@@ -17,7 +21,7 @@ class DriverTest extends TestCase
 
     public static function setUpBeforeClass()
     {
-        $mysqli = new \mysqli('localhost:13306', 'root', '', 'test_event_store');
+        $mysqli = new mysqli('localhost:13306', 'root', '', 'test_event_store');
         $mysqli->query("TRUNCATE TABLE events");
     }
 

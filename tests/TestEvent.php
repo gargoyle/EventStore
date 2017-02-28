@@ -2,17 +2,18 @@
 
 namespace Pmc\EventStore\Tests;
 
-use Pmc\{
-    EventSourceLib\AggregateId,
-    EventSourceLib\EventClassName,
-    EventSourceLib\EventId,
-    EventStore\StorableEventInterface
+use Pmc\ {
+    EventSourceLib\Aggregate\AggregateId,
+    EventSourceLib\Event\AggregateEvent,
+    EventSourceLib\Event\EventId,
+    ObjectLib\Id,
+    Session\Session
 };
 
 /**
  * @author Paul Court <emails@paulcourt.co.uk>
  */
-class TestEvent implements StorableEventInterface
+class TestEvent implements AggregateEvent
 {
 
     private $dummyData = 'This is a test event';
@@ -33,9 +34,9 @@ class TestEvent implements StorableEventInterface
         return $this->aggregateId;
     }
 
-    public function eventClassName(): EventClassName
+    public function eventClassName(): string
     {
-        return new EventClassName(self::class);
+        return self::class;
     }
 
     public function eventId(): EventId
@@ -67,6 +68,11 @@ class TestEvent implements StorableEventInterface
         $instance->timestamp = (float)$data['timestamp'];
         $instance->dummyData = (string)$data['dummyData'];
         return $instance;
+    }
+
+    public function session(): Session
+    {
+        return new Session((string)new Id());
     }
 
 }
